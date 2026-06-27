@@ -43,6 +43,7 @@
   .btn-purple{background:linear-gradient(135deg,#a855f7,#6366f1);color:white;}
   .btn-pink{background:linear-gradient(135deg,#ec4899,#f43f5e);color:white;}
   .btn-gray{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);}
+  .btn-orange{background:linear-gradient(135deg,#f97316,#f59e0b);color:white;}
   .q-bar {
     background:rgba(255,255,255,0.08);border-radius:16px;
     padding:12px 16px;margin-bottom:12px;
@@ -104,6 +105,8 @@
     border-radius:14px;padding:12px 16px;color:#fca5a5;
     font-size:0.9rem;margin:10px 0;display:none;
   }
+  .action-btns { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
+  .action-btns .btn { flex: 1; margin: 0; }
 </style>
 </head>
 <body>
@@ -144,8 +147,13 @@
       <input class="q-input" id="qInput" placeholder="e.g. Kya ye jungle me rehta hai?" maxlength="120"/>
       <button class="btn btn-purple" id="askBtn" onclick="askQuestion()" style="padding:12px 18px;">Poocho</button>
     </div>
-    <button class="btn btn-pink" onclick="goGuess()">🎯 Guess Karo!</button>
-    <button class="btn btn-gray" onclick="giveUp()" style="font-size:0.85rem;padding:10px 18px;">🏳️ Haar Maano</button>
+    
+    <!-- 🟢 Buttons section updated with Hint option -->
+    <button class="btn btn-pink" style="width: 100%; margin: 6px 0;" onclick="goGuess()">🎯 Guess Karo!</button>
+    <div class="action-btns">
+      <button class="btn btn-orange" id="hintBtn" onclick="getHint()">💡 Hint Do</button>
+      <button class="btn btn-gray" onclick="giveUp()">🏳️ Haar Maano</button>
+    </div>
   </div>
 
   <div class="screen" id="s-guess">
@@ -171,11 +179,12 @@
 <script>
 const API_KEY = "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";
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL   = "qwen/qwen-2.5-7b-instruct";
+const MODEL   = "qwen/qwen-2.5-7b-instruct:free";
+
 const SYSTEM = {
-  easy:   "You are playing an animal guessing game. You have secretly chosen this animal: {ANIMAL}. The player asks yes/no questions in Urdu or English. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — nothing else. No thinking, no explanation, just one of these two responses.",
-  medium: "You are playing an animal guessing game. You have secretly chosen this animal: {ANIMAL}. The player asks yes/no questions in Urdu or English. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — nothing else. No thinking, no explanation.",
-  hard:   "You are playing an animal guessing game. You have secretly chosen this animal: {ANIMAL}. The player asks yes/no questions in Urdu or English. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — nothing else. No thinking, no explanation."
+  easy:   "You are playing a strict animal guessing game. Your secret animal is: {ANIMAL}. The player will ask yes/no questions. You must think carefully about the animal's real-world traits (e.g., what it eats, where it lives). You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' based strictly on facts. No explanation, no extra text.",
+  medium: "You are playing a strict animal guessing game. Your secret animal is: {ANIMAL}. The player will ask yes/no questions. You must think carefully about the animal's real-world traits. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' based strictly on facts. No explanation, no extra text.",
+  hard:   "You are playing a strict animal guessing game. Your secret animal is: {ANIMAL}. The player will ask yes/no questions. You must think carefully about the animal's real-world traits. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' based strictly on facts. No explanation, no extra text."
 };
 
 const ANIMALS = {
@@ -185,9 +194,10 @@ const ANIMALS = {
 };
 
 let difficulty = 'easy';
-let gameHistory = []; // Variable name fixed to avoid conflicts
+let gameHistory = []; 
 let qUsed = 0;
 let secretAnimal = '';
+let hintUsed = false; // Tracks if hint was already taken
 
 function setDiff(btn, d) {
   difficulty = d;
@@ -199,16 +209,11 @@ function show(id) {
   document.getElementById(id).classList.add('active');
 }
 
-// Clean AI reply — completely strips <think> blocks and filters text smart
 function cleanReply(text) {
-  // 1. Remove complete or partial <think>...</think> blocks
   text = text.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
-  
-  // 2. Check for direct emojis
   if (text.includes('✅')) return '✅ Haan!';
   if (text.includes('❌')) return '❌ Nahi!';
   
-  // 3. Fallback filtering for keywords
   const lower = text.toLowerCase();
   if (lower.includes('nahi') || lower.includes('no') || lower.includes('not')) {
     return '❌ Nahi!';
@@ -232,7 +237,7 @@ async function callAI(messages, systemPrompt) {
     body: JSON.stringify({
       model: MODEL,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
-      max_tokens: 50,
+      max_tokens: 60,
       temperature: 0.3
     })
   });
@@ -246,6 +251,8 @@ async function startGame() {
   secretAnimal = list[Math.floor(Math.random() * list.length)];
   gameHistory = [];
   qUsed = 0;
+  hintUsed = false;
+  document.getElementById('hintBtn').disabled = false;
   document.getElementById('history').innerHTML = '';
   document.getElementById('qLeft').textContent = '10';
   document.getElementById('pFill').style.width = '0%';
@@ -311,6 +318,30 @@ async function askQuestion() {
   input.focus();
 }
 
+// 🟢 New function to request a hint from AI
+async function getHint() {
+  if (hintUsed) return;
+  
+  const hintBtn = document.getElementById('hintBtn');
+  hintBtn.disabled = true;
+  document.getElementById('aiBubble').innerHTML = '<div class="thinking-dots"><span></span><span></span><span></span></div>';
+  
+  const hintSystemPrompt = `You are a helpful assistant in an animal guessing game. The secret animal is: ${secretAnimal}. Give the player a short, creative, single-sentence hint in Roman Urdu or simple English about this animal WITHOUT revealing its name. Keep any <think> block filtered out.`;
+  
+  try {
+    const rawHint = await callAI([{ role: 'user', content: 'Give me a short hint.' }], hintSystemPrompt);
+    // Clean potential <think> tags from hint response
+    const cleanHint = rawHint.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+    
+    document.getElementById('aiBubble').textContent = '💡 Hint: ' + cleanHint;
+    hintUsed = true;
+    hintBtn.textContent = '❌ Hint Used';
+  } catch(e) {
+    hintBtn.disabled = false;
+    document.getElementById('aiBubble').textContent = '🤖 Hint nahi mil saka, dobara try karein...';
+  }
+}
+
 function addHistory(q, a, type) {
   const hist = document.getElementById('history');
   const div = document.createElement('div');
@@ -351,7 +382,10 @@ function submitGuess() {
   show('s-result');
 }
 
-function restart() { show('s-intro'); }
+function restart() { 
+  document.getElementById('hintBtn').textContent = '💡 Hint Do';
+  show('s-intro'); 
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('qInput')?.addEventListener('keydown', e => { if(e.key==='Enter') askQuestion(); });
