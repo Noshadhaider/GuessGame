@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐾 Animal Guess Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 32px;
+    padding: 32px 24px;
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+    color: white;
+  }
+
+  h1 { font-size: 2rem; font-weight: 900; margin-bottom: 4px; }
+  .subtitle { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 24px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .ai-face {
+    font-size: 5rem;
+    margin: 12px 0;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+
+  .thinking-dots span {
+    display: inline-block;
+    width: 10px; height: 10px;
+    background: #e040fb;
+    border-radius: 50%;
+    margin: 0 3px;
+    animation: blink 1.2s infinite;
+  }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity:0.2; } 40% { opacity:1; } }
+
+  .btn {
+    display: inline-block;
+    padding: 14px 32px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin: 6px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+  .btn:active { transform: scale(0.97); }
+  .btn-purple { background: linear-gradient(135deg, #a855f7, #6366f1); color: white; }
+  .btn-pink   { background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; }
+  .btn-gray   { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+
+  .q-bar {
+    background: rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .q-bar .label { color: rgba(255,255,255,0.5); font-size: 0.85rem; }
+  .q-bar .count { font-size: 1.2rem; font-weight: 900; color: #e040fb; }
+
+  .progress-wrap {
+    background: rgba(255,255,255,0.1);
+    border-radius: 50px;
+    height: 8px;
+    margin-bottom: 14px;
+  }
+  .progress-fill {
+    height: 8px;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    transition: width 0.4s;
+  }
+
+  .history {
+    max-height: 190px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    text-align: left;
+    padding-right: 4px;
+  }
+  .history::-webkit-scrollbar { width: 4px; }
+  .history::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+  .h-item {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.88rem;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; } }
+  .h-q { color: rgba(255,255,255,0.65); flex: 1; }
+  .h-a { font-weight: 900; white-space: nowrap; }
+  .h-a.yes { color: #4ade80; }
+  .h-a.no  { color: #f87171; }
+  .h-a.maybe { color: #fbbf24; }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .q-input {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 12px 16px;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .q-input::placeholder { color: rgba(255,255,255,0.3); }
+  .q-input:focus { border-color: #a855f7; }
+
+  .ai-bubble {
+    background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(99,102,241,0.2));
+    border: 1px solid rgba(168,85,247,0.4);
+    border-radius: 20px;
+    padding: 14px 18px;
+    margin: 10px 0;
+    font-size: 1rem;
+    color: white;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .guess-wrap {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .guess-input {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    padding: 13px 16px;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    outline: none;
+  }
+  .guess-input:focus { border-color: #ec4899; }
+  .guess-input::placeholder { color: rgba(255,255,255,0.3); }
+
+  .result-big { font-size: 5rem; animation: pop 0.4s ease; }
+  @keyframes pop { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .result-title { font-size: 1.6rem; font-weight: 900; margin: 8px 0 4px; }
+  .result-sub   { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-bottom: 16px; line-height: 1.5; }
+  .reveal-box {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.7);
+  }
+  .reveal-box .animal-big { font-size: 2rem; font-weight: 900; display: block; margin-top: 6px; color: white; }
+
+  .diff-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .diff-btn {
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .diff-btn:hover, .diff-btn.active { border-color: #a855f7; background: rgba(168,85,247,0.25); }
+
+  .error-box {
+    background: rgba(239,68,68,0.2);
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 14px;
+    padding: 12px 16px;
+    color: #fca5a5;
+    font-size: 0.9rem;
+    margin: 10px 0;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- INTRO -->
+  <div class="screen active" id="s-intro">
+    <span class="ai-face">🤖</span>
+    <h1>Main Soochunga!</h1>
+    <p class="subtitle">AI ek animal sochega — tum sawal poocho, wo sirf Haan ya Nahi kahega!</p>
+    <p style="color:rgba(255,255,255,0.5); font-size:0.85rem; margin-bottom:12px;">Mushkil level:</p>
+    <div class="diff-btns">
+      <button class="diff-btn active" onclick="setDiff(this,'easy')">😊 Aasaan</button>
+      <button class="diff-btn" onclick="setDiff(this,'medium')">🤔 Darmiyana</button>
+      <button class="diff-btn" onclick="setDiff(this,'hard')">😈 Mushkil</button>
+    </div>
+    <button class="btn btn-purple" onclick="startGame()">🎮 Shuru Karo!</button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="screen" id="s-loading">
+    <span class="ai-face">🤔</span>
+    <h1 id="loadMsg">Soch raha hun...</h1>
+    <div class="thinking-dots" style="margin:20px 0;">
+      <span></span><span></span><span></span>
+    </div>
+    <p style="color:rgba(255,255,255,0.4); font-size:0.85rem;" id="loadSub">Ek secret animal choose kar raha hun!</p>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="s-game">
+    <h1 style="font-size:1.4rem;">🐾 Animal Dhundo!</h1>
+    <p class="subtitle">Haan ya Nahi wale sawal karo</p>
+
+    <div class="q-bar">
+      <span class="label">Baaki Sawal</span>
+      <span class="count"><span id="qLeft">10</span> / 10</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-fill" id="pFill" style="width:0%"></div>
+    </div>
+
+    <div class="history" id="history"></div>
+
+    <div class="ai-bubble" id="aiBubble">🤖 Pooch lo! Koi bhi sawal...</div>
+    <div class="error-box" id="errBox"></div>
+
+    <div class="input-row">
+      <input class="q-input" id="qInput" placeholder="e.g. Kya ye jungle me rehta hai?" maxlength="120" />
+      <button class="btn btn-purple" id="askBtn" onclick="askQuestion()" style="padding:12px 18px;">Poocho</button>
+    </div>
+
+    <button class="btn btn-pink" onclick="goGuess()">🎯 Guess Karo!</button>
+    <button class="btn btn-gray" onclick="giveUp()" style="font-size:0.85rem; padding:10px 18px;">🏳️ Haar Maano</button>
+  </div>
+
+  <!-- GUESS -->
+  <div class="screen" id="s-guess">
+    <span style="font-size:3rem;">🎯</span>
+    <h1>Guess Karo!</h1>
+    <p class="subtitle">Ab batao — wo animal kaun sa hai?</p>
+    <div class="guess-wrap">
+      <input class="guess-input" id="guessInput" placeholder="Animal ka naam..." />
+      <button class="btn btn-pink" onclick="submitGuess()">Go!</button>
+    </div>
+    <button class="btn btn-gray" onclick="show('s-game')">← Wapis</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="s-result">
+    <div class="result-big" id="rEmoji"></div>
+    <div class="result-title" id="rTitle"></div>
+    <div class="result-sub" id="rSub"></div>
+    <div class="reveal-box">
+      Maine socha tha:<br>
+      <span class="animal-big" id="rAnimal"></span>
+    </div>
+    <button class="btn btn-purple" onclick="restart()">🔄 Dobara Khelo</button>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  ⚠️  SIRF YAHAN APNI API KEY DAALO
+// ══════════════════════════════════════════
+const GEMINI_API_KEY = "AQ.Ab8RN6JPZOeCxYNgHPblkcEHe9qOrT0y-VgzUpAQW2tKWRCFIQ";
+// ══════════════════════════════════════════
+
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+const SYSTEM = {
+  easy:   "You are playing a guessing game. Secretly pick ONE very common animal a Pakistani child knows (cat, dog, lion, cow, goat, parrot, fish, rabbit, elephant, butterfly). Remember it for the whole game. The player asks yes/no questions in Urdu, Roman Urdu, or English. Reply ONLY with '✅ Haan!' or '❌ Nahi!' — nothing else. Be consistent.",
+  medium: "You are playing a guessing game. Secretly pick ONE moderately known animal (peacock, camel, crocodile, penguin, giraffe, eagle, turtle, fox, wolf, zebra). Remember it. Reply ONLY with '✅ Haan!' or '❌ Nahi!' Be consistent.",
+  hard:   "You are playing a guessing game. Secretly pick ONE exotic or unusual animal (axolotl, platypus, narwhal, tapir, kiwi, komodo dragon, snow leopard, pangolin, capybara). Remember it. Reply ONLY with '✅ Haan!' or '❌ Nahi!' Be consistent."
+};
+
+let difficulty = 'easy';
+let history = [];
+let qUsed = 0;
+let secretAnimal = '';
+
+function setDiff(btn, d) {
+  difficulty = d;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+async function gemini(messages) {
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: SYSTEM[difficulty] }] },
+      contents,
+      generationConfig: { maxOutputTokens: 100, temperature: 0.7 }
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+async function startGame() {
+  show('s-loading');
+  document.getElementById('loadMsg').textContent = 'Soch raha hun...';
+  document.getElementById('loadSub').textContent = 'Ek secret animal choose kar raha hun!';
+  history = [];
+  qUsed = 0;
+  secretAnimal = '';
+  document.getElementById('history').innerHTML = '';
+  document.getElementById('qLeft').textContent = '10';
+  document.getElementById('pFill').style.width = '0%';
+  document.getElementById('aiBubble').innerHTML = '🤖 Pooch lo! Koi bhi sawal...';
+  document.getElementById('errBox').style.display = 'none';
+
+  try {
+    history.push({ role: 'user', content: 'Game shuru. Abhi secretly ek animal choose karo aur ready raho.' });
+    const reply = await gemini(history);
+    history.push({ role: 'assistant', content: reply });
+    show('s-game');
+    document.getElementById('qInput').focus();
+  } catch(e) {
+    show('s-intro');
+    alert('API Error: ' + e.message + '\n\nAPI key check karo!');
+  }
+}
+
+async function askQuestion() {
+  const input = document.getElementById('qInput');
+  const q = input.value.trim();
+  if (!q) return;
+  if (qUsed >= 10) { alert('Sawal khatam! Ab guess karo.'); return; }
+
+  input.value = '';
+  input.disabled = true;
+  document.getElementById('askBtn').disabled = true;
+  document.getElementById('errBox').style.display = 'none';
+  setBubble('<div class="thinking-dots"><span></span><span></span><span></span></div>');
+
+  try {
+    history.push({ role: 'user', content: q });
+    const reply = await gemini(history);
+    history.push({ role: 'assistant', content: reply });
+
+    qUsed++;
+    const left = 10 - qUsed;
+    document.getElementById('qLeft').textContent = left;
+    document.getElementById('pFill').style.width = (qUsed * 10) + '%';
+
+    const isYes = reply.includes('Haan') || reply.includes('✅') || reply.toLowerCase().includes('yes');
+    addHistory(q, reply, isYes ? 'yes' : 'no');
+    setBubble('🤖 ' + reply);
+
+    if (qUsed >= 10) {
+      setBubble('⏰ 10 sawal ho gaye! Ab guess karo!');
+    }
+  } catch(e) {
+    showErr('Galti aayi: ' + e.message);
+    setBubble('🤖 Dobara try karo...');
+    history.pop();
+  }
+
+  input.disabled = false;
+  document.getElementById('askBtn').disabled = false;
+  input.focus();
+}
+
+function addHistory(q, a, type) {
+  const hist = document.getElementById('history');
+  const div = document.createElement('div');
+  div.className = 'h-item';
+  div.innerHTML = `<span class="h-q">${q}</span><span class="h-a ${type}">${a}</span>`;
+  hist.appendChild(div);
+  hist.scrollTop = hist.scrollHeight;
+}
+
+function setBubble(html) {
+  document.getElementById('aiBubble').innerHTML = html;
+}
+
+function showErr(msg) {
+  const box = document.getElementById('errBox');
+  box.textContent = msg;
+  box.style.display = 'block';
+}
+
+function goGuess() {
+  show('s-guess');
+  document.getElementById('guessInput').value = '';
+  document.getElementById('guessInput').focus();
+}
+
+async function giveUp() {
+  await revealAndShow(false, '');
+}
+
+async function submitGuess() {
+  const g = document.getElementById('guessInput').value.trim();
+  if (!g) return;
+  show('s-loading');
+  document.getElementById('loadMsg').textContent = 'Check kar raha hun...';
+  document.getElementById('loadSub').textContent = 'Thora sabr karo...';
+  await revealAndShow(null, g);
+}
+
+async function revealAndShow(forceResult, guess) {
+  show('s-loading');
+  document.getElementById('loadMsg').textContent = 'Jawab de raha hun...';
+  document.getElementById('loadSub').textContent = '';
+
+  try {
+    // Reveal animal
+    const revMsgs = [...history, {
+      role: 'user',
+      content: 'Game khatam. Batao tumne kaun sa animal socha tha. Sirf animal ka naam aur emoji likho, kuch aur nahi.'
+    }];
+    const revReply = await gemini(revMsgs);
+    secretAnimal = revReply.trim();
+
+    let correct = forceResult;
+
+    if (guess && forceResult === null) {
+      // Judge guess
+      const judgeMsgs = [{
+        role: 'user',
+        content: `Secret animal tha: "${secretAnimal}". Player ne guess kiya: "${guess}". Kya ye sahi hai? Sirf "CORRECT" ya "WRONG" likho.`
+      }];
+      const judgeReply = await gemini(judgeMsgs);
+      correct = judgeReply.toUpperCase().includes('CORRECT');
+    }
+
+    document.getElementById('rEmoji').textContent  = correct ? '🎉' : '😅';
+    document.getElementById('rTitle').textContent  = correct ? 'Wah! Bilkul Sahi!' : (forceResult === false ? 'Haar Gaye!' : 'Galat!');
+    document.getElementById('rSub').textContent    = correct
+      ? `"${guess}" ekdum sahi jawab! Tum jeet gaye! 🏆`
+      : forceResult === false
+        ? 'Koi baat nahi, agli baar zaroor jeetoge! 💪'
+        : `"${guess}" sahi nahi tha. Agli baar karoge! 💪`;
+    document.getElementById('rAnimal').textContent = secretAnimal;
+    show('s-result');
+
+  } catch(e) {
+    show('s-game');
+    showErr('Reveal me error: ' + e.message);
+  }
+}
+
+function restart() {
+  show('s-intro');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('qInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') askQuestion();
+  });
+  document.getElementById('guessInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitGuess();
+  });
+});
+</script>
+</body>
+</html>
