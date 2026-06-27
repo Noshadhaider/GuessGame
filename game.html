@@ -7,217 +7,102 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: 'Nunito', sans-serif;
     min-height: 100vh;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
   }
-
   .card {
     background: rgba(255,255,255,0.06);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 32px;
-    padding: 32px 24px;
-    max-width: 460px;
-    width: 100%;
-    text-align: center;
-    color: white;
+    border-radius: 32px; padding: 32px 24px;
+    max-width: 460px; width: 100%; text-align: center; color: white;
   }
-
   h1 { font-size: 2rem; font-weight: 900; margin-bottom: 4px; }
   .subtitle { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 24px; }
-
   .screen { display: none; }
   .screen.active { display: block; }
-
-  .ai-face {
-    font-size: 5rem;
-    margin: 12px 0;
-    display: block;
-    animation: float 3s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%,100% { transform: translateY(0); }
-    50%      { transform: translateY(-10px); }
-  }
-
+  .ai-face { font-size: 5rem; margin: 12px 0; display: block; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
   .thinking-dots span {
-    display: inline-block;
-    width: 10px; height: 10px;
-    background: #e040fb;
-    border-radius: 50%;
-    margin: 0 3px;
-    animation: blink 1.2s infinite;
+    display: inline-block; width:10px; height:10px; background:#e040fb;
+    border-radius:50%; margin:0 3px; animation:blink 1.2s infinite;
   }
-  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes blink { 0%,80%,100% { opacity:0.2; } 40% { opacity:1; } }
-
+  .thinking-dots span:nth-child(2){animation-delay:0.2s;}
+  .thinking-dots span:nth-child(3){animation-delay:0.4s;}
+  @keyframes blink{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}
   .btn {
-    display: inline-block;
-    padding: 14px 32px;
-    border-radius: 50px;
-    border: none;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-    margin: 6px;
+    display: inline-block; padding: 14px 32px; border-radius: 50px; border: none;
+    font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; margin: 6px;
   }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
-  .btn:active { transform: scale(0.97); }
-  .btn-purple { background: linear-gradient(135deg, #a855f7, #6366f1); color: white; }
-  .btn-pink   { background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; }
-  .btn-gray   { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
-
+  .btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.3);}
+  .btn:active{transform:scale(0.97);}
+  .btn-purple{background:linear-gradient(135deg,#a855f7,#6366f1);color:white;}
+  .btn-pink{background:linear-gradient(135deg,#ec4899,#f43f5e);color:white;}
+  .btn-gray{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);}
   .q-bar {
-    background: rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 12px 16px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    background:rgba(255,255,255,0.08);border-radius:16px;
+    padding:12px 16px;margin-bottom:12px;
+    display:flex;align-items:center;justify-content:space-between;
   }
-  .q-bar .label { color: rgba(255,255,255,0.5); font-size: 0.85rem; }
-  .q-bar .count { font-size: 1.2rem; font-weight: 900; color: #e040fb; }
-
-  .progress-wrap {
-    background: rgba(255,255,255,0.1);
-    border-radius: 50px;
-    height: 8px;
-    margin-bottom: 14px;
-  }
-  .progress-fill {
-    height: 8px;
-    border-radius: 50px;
-    background: linear-gradient(90deg, #a855f7, #ec4899);
-    transition: width 0.4s;
-  }
-
-  .history {
-    max-height: 190px;
-    overflow-y: auto;
-    margin-bottom: 12px;
-    text-align: left;
-    padding-right: 4px;
-  }
-  .history::-webkit-scrollbar { width: 4px; }
-  .history::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-
-  .h-item {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 0.88rem;
-    animation: slideIn 0.3s ease;
-  }
-  @keyframes slideIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; } }
-  .h-q { color: rgba(255,255,255,0.65); flex: 1; }
-  .h-a { font-weight: 900; white-space: nowrap; }
-  .h-a.yes { color: #4ade80; }
-  .h-a.no  { color: #f87171; }
-
-  .input-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
+  .q-bar .label{color:rgba(255,255,255,0.5);font-size:0.85rem;}
+  .q-bar .count{font-size:1.2rem;font-weight:900;color:#e040fb;}
+  .progress-wrap{background:rgba(255,255,255,0.1);border-radius:50px;height:8px;margin-bottom:14px;}
+  .progress-fill{height:8px;border-radius:50px;background:linear-gradient(90deg,#a855f7,#ec4899);transition:width 0.4s;}
+  .history{max-height:190px;overflow-y:auto;margin-bottom:12px;text-align:left;padding-right:4px;}
+  .history::-webkit-scrollbar{width:4px;}
+  .history::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:4px;}
+  .h-item{display:flex;gap:8px;margin-bottom:8px;font-size:0.88rem;animation:slideIn 0.3s ease;}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;}}
+  .h-q{color:rgba(255,255,255,0.65);flex:1;}
+  .h-a{font-weight:900;white-space:nowrap;}
+  .h-a.yes{color:#4ade80;} .h-a.no{color:#f87171;}
+  .input-row{display:flex;gap:8px;margin-bottom:12px;}
   .q-input {
-    flex: 1;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 14px;
-    padding: 12px 16px;
-    color: white;
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
+    flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+    border-radius:14px;padding:12px 16px;color:white;
+    font-family:'Nunito',sans-serif;font-size:0.95rem;outline:none;transition:border-color 0.2s;
   }
-  .q-input::placeholder { color: rgba(255,255,255,0.3); }
-  .q-input:focus { border-color: #a855f7; }
-
+  .q-input::placeholder{color:rgba(255,255,255,0.3);}
+  .q-input:focus{border-color:#a855f7;}
   .ai-bubble {
-    background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(99,102,241,0.2));
-    border: 1px solid rgba(168,85,247,0.4);
-    border-radius: 20px;
-    padding: 14px 18px;
-    margin: 10px 0;
-    font-size: 1rem;
-    color: white;
-    min-height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+    background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(99,102,241,0.2));
+    border:1px solid rgba(168,85,247,0.4);border-radius:20px;
+    padding:14px 18px;margin:10px 0;font-size:1rem;color:white;
+    min-height:52px;display:flex;align-items:center;justify-content:center;
   }
-
-  .guess-wrap {
-    display: flex;
-    gap: 8px;
-    margin: 16px 0;
-  }
+  .guess-wrap{display:flex;gap:8px;margin:16px 0;}
   .guess-input {
-    flex: 1;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 14px;
-    padding: 13px 16px;
-    color: white;
-    font-family: 'Nunito', sans-serif;
-    font-size: 1rem;
-    outline: none;
+    flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);
+    border-radius:14px;padding:13px 16px;color:white;
+    font-family:'Nunito',sans-serif;font-size:1rem;outline:none;
   }
-  .guess-input:focus { border-color: #ec4899; }
-  .guess-input::placeholder { color: rgba(255,255,255,0.3); }
-
-  .result-big { font-size: 5rem; animation: pop 0.4s ease; }
-  @keyframes pop { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
-  .result-title { font-size: 1.6rem; font-weight: 900; margin: 8px 0 4px; }
-  .result-sub   { color: rgba(255,255,255,0.6); font-size: 0.95rem; margin-bottom: 16px; line-height: 1.5; }
+  .guess-input:focus{border-color:#ec4899;}
+  .guess-input::placeholder{color:rgba(255,255,255,0.3);}
+  .result-big{font-size:5rem;animation:pop 0.4s ease;}
+  @keyframes pop{from{transform:scale(0.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .result-title{font-size:1.6rem;font-weight:900;margin:8px 0 4px;}
+  .result-sub{color:rgba(255,255,255,0.6);font-size:0.95rem;margin-bottom:16px;line-height:1.5;}
   .reveal-box {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 16px;
-    padding: 14px;
-    margin-bottom: 16px;
-    font-size: 1rem;
-    color: rgba(255,255,255,0.7);
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+    border-radius:16px;padding:14px;margin-bottom:16px;
+    font-size:1rem;color:rgba(255,255,255,0.7);
   }
-  .reveal-box .animal-big { font-size: 2rem; font-weight: 900; display: block; margin-top: 6px; color: white; }
-
-  .diff-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .reveal-box .animal-big{font-size:2rem;font-weight:900;display:block;margin-top:6px;color:white;}
+  .diff-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;}
   .diff-btn {
-    padding: 10px 20px;
-    border-radius: 50px;
-    border: 2px solid rgba(255,255,255,0.2);
-    background: transparent;
-    color: white;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    padding:10px 20px;border-radius:50px;border:2px solid rgba(255,255,255,0.2);
+    background:transparent;color:white;font-family:'Nunito',sans-serif;
+    font-weight:700;cursor:pointer;font-size:0.9rem;transition:all 0.2s;
   }
-  .diff-btn:hover, .diff-btn.active { border-color: #a855f7; background: rgba(168,85,247,0.25); }
-
-  .error-box {
-    background: rgba(239,68,68,0.2);
-    border: 1px solid rgba(239,68,68,0.4);
-    border-radius: 14px;
-    padding: 12px 16px;
-    color: #fca5a5;
-    font-size: 0.9rem;
-    margin: 10px 0;
-    display: none;
+  .diff-btn:hover,.diff-btn.active{border-color:#a855f7;background:rgba(168,85,247,0.25);}
+  .err-box {
+    background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);
+    border-radius:14px;padding:12px 16px;color:#fca5a5;
+    font-size:0.9rem;margin:10px 0;display:none;
   }
 </style>
 </head>
@@ -228,7 +113,7 @@
     <span class="ai-face">🤖</span>
     <h1>Main Soochunga!</h1>
     <p class="subtitle">AI ek animal sochega — tum sawal poocho, wo sirf Haan ya Nahi kahega!</p>
-    <p style="color:rgba(255,255,255,0.5); font-size:0.85rem; margin-bottom:12px;">Mushkil level:</p>
+    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:12px;">Mushkil level:</p>
     <div class="diff-btns">
       <button class="diff-btn active" onclick="setDiff(this,'easy')">😊 Aasaan</button>
       <button class="diff-btn" onclick="setDiff(this,'medium')">🤔 Darmiyana</button>
@@ -240,10 +125,8 @@
   <div class="screen" id="s-loading">
     <span class="ai-face">🤔</span>
     <h1 id="loadMsg">Soch raha hun...</h1>
-    <div class="thinking-dots" style="margin:20px 0;">
-      <span></span><span></span><span></span>
-    </div>
-    <p style="color:rgba(255,255,255,0.4); font-size:0.85rem;" id="loadSub">Ek secret animal choose kar raha hun!</p>
+    <div class="thinking-dots" style="margin:20px 0;"><span></span><span></span><span></span></div>
+    <p style="color:rgba(255,255,255,0.4);font-size:0.85rem;" id="loadSub">Ek secret animal choose kar raha hun!</p>
   </div>
 
   <div class="screen" id="s-game">
@@ -253,18 +136,16 @@
       <span class="label">Baaki Sawal</span>
       <span class="count"><span id="qLeft">10</span> / 10</span>
     </div>
-    <div class="progress-wrap">
-      <div class="progress-fill" id="pFill" style="width:0%"></div>
-    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="pFill" style="width:0%"></div></div>
     <div class="history" id="history"></div>
     <div class="ai-bubble" id="aiBubble">🤖 Pooch lo! Koi bhi sawal...</div>
-    <div class="error-box" id="errBox"></div>
+    <div class="err-box" id="errBox"></div>
     <div class="input-row">
-      <input class="q-input" id="qInput" placeholder="e.g. Kya ye jungle me rehta hai?" maxlength="120" />
+      <input class="q-input" id="qInput" placeholder="e.g. Kya ye jungle me rehta hai?" maxlength="120"/>
       <button class="btn btn-purple" id="askBtn" onclick="askQuestion()" style="padding:12px 18px;">Poocho</button>
     </div>
     <button class="btn btn-pink" onclick="goGuess()">🎯 Guess Karo!</button>
-    <button class="btn btn-gray" onclick="giveUp()" style="font-size:0.85rem; padding:10px 18px;">🏳️ Haar Maano</button>
+    <button class="btn btn-gray" onclick="giveUp()" style="font-size:0.85rem;padding:10px 18px;">🏳️ Haar Maano</button>
   </div>
 
   <div class="screen" id="s-guess">
@@ -272,7 +153,7 @@
     <h1>Guess Karo!</h1>
     <p class="subtitle">Ab batao — wo animal kaun sa hai?</p>
     <div class="guess-wrap">
-      <input class="guess-input" id="guessInput" placeholder="Animal ka naam..." />
+      <input class="guess-input" id="guessInput" placeholder="Animal ka naam..."/>
       <button class="btn btn-pink" onclick="submitGuess()">Go!</button>
     </div>
     <button class="btn btn-gray" onclick="show('s-game')">← Wapis</button>
@@ -282,28 +163,30 @@
     <div class="result-big" id="rEmoji"></div>
     <div class="result-title" id="rTitle"></div>
     <div class="result-sub" id="rSub"></div>
-    <div class="reveal-box">
-      Maine socha tha:<br>
-      <span class="animal-big" id="rAnimal"></span>
-    </div>
+    <div class="reveal-box">Maine socha tha:<br><span class="animal-big" id="rAnimal"></span></div>
     <button class="btn btn-purple" onclick="restart()">🔄 Dobara Khelo</button>
   </div>
 
 </div>
-
 <script>
 const API_KEY = "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";
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL   = "meta-llama/llama-3.3-70b-instruct:free";
+const MODEL   = "qwen/qwen3-4b:free";
 
 const SYSTEM = {
-  easy:   "You are an animal guessing game bot. You have secretly chosen one animal from this list and you must NEVER change it: cat, dog, lion, cow, goat, parrot, fish, rabbit, elephant, butterfly. Pick the FIRST one: cat. The player will ask yes/no questions. You MUST reply with ONLY one of these two responses: '✅ Haan!' or '❌ Nahi!' — absolutely nothing else. No explanations. No thinking out loud. No extra words. Just '✅ Haan!' or '❌ Nahi!' every single time.",
-  medium: "You are an animal guessing game bot. You have secretly chosen: peacock. The player will ask yes/no questions. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — absolutely nothing else. No explanations. No thinking. Just those two words.",
-  hard:   "You are an animal guessing game bot. You have secretly chosen: snow leopard. The player will ask yes/no questions. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — absolutely nothing else. No explanations. No thinking. Just those two words."
+  easy:   "You are playing an animal guessing game. You have secretly chosen this animal: {ANIMAL}. The player asks yes/no questions in Urdu or English. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — nothing else. No thinking, no explanation, just one of these two responses.",
+  medium: "You are playing an animal guessing game. You have secretly chosen this animal: {ANIMAL}. The player asks yes/no questions in Urdu or English. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — nothing else. No thinking, no explanation.",
+  hard:   "You are playing an animal guessing game. You have secretly chosen this animal: {ANIMAL}. The player asks yes/no questions in Urdu or English. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — nothing else. No thinking, no explanation."
+};
+
+const ANIMALS = {
+  easy:   ["cat","dog","lion","cow","goat","parrot","fish","rabbit","elephant","butterfly"],
+  medium: ["peacock","camel","crocodile","penguin","giraffe","eagle","turtle","fox","wolf","zebra"],
+  hard:   ["snow leopard","pangolin","axolotl","platypus","narwhal","komodo dragon","capybara","tapir","kiwi","flamingo"]
 };
 
 let difficulty = 'easy';
-let history = [];
+let gameHistory = []; // Variable name fixed to avoid conflicts
 let qUsed = 0;
 let secretAnimal = '';
 
@@ -312,10 +195,30 @@ function setDiff(btn, d) {
   document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
-
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+}
+
+// Clean AI reply — completely strips <think> blocks and filters text smart
+function cleanReply(text) {
+  // 1. Remove complete or partial <think>...</think> blocks
+  text = text.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+  
+  // 2. Check for direct emojis
+  if (text.includes('✅')) return '✅ Haan!';
+  if (text.includes('❌')) return '❌ Nahi!';
+  
+  // 3. Fallback filtering for keywords
+  const lower = text.toLowerCase();
+  if (lower.includes('nahi') || lower.includes('no') || lower.includes('not')) {
+    return '❌ Nahi!';
+  }
+  if (lower.includes('haan') || lower.includes('yes') || lower.includes('sahi') || lower.includes('true')) {
+    return '✅ Haan!';
+  }
+  
+  return '❌ Nahi!';
 }
 
 async function callAI(messages, systemPrompt) {
@@ -329,42 +232,40 @@ async function callAI(messages, systemPrompt) {
     },
     body: JSON.stringify({
       model: MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...messages
-      ],
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
       max_tokens: 50,
-      temperature: 0.7
+      temperature: 0.3
     })
   });
-
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   return data.choices?.[0]?.message?.content || '';
 }
 
 async function startGame() {
-  show('s-loading');
-  document.getElementById('loadMsg').textContent = 'Soch raha hun...';
-  document.getElementById('loadSub').textContent = 'Ek secret animal choose kar raha hun!';
-  history = [];
+  const list = ANIMALS[difficulty];
+  secretAnimal = list[Math.floor(Math.random() * list.length)];
+  gameHistory = [];
   qUsed = 0;
-  secretAnimal = '';
   document.getElementById('history').innerHTML = '';
   document.getElementById('qLeft').textContent = '10';
   document.getElementById('pFill').style.width = '0%';
-  document.getElementById('aiBubble').innerHTML = '🤖 Pooch lo! Koi bhi sawal...';
+  document.getElementById('aiBubble').textContent = '🤖 Pooch lo! Koi bhi sawal...';
   document.getElementById('errBox').style.display = 'none';
+  show('s-loading');
+  document.getElementById('loadMsg').textContent = 'Soch raha hun...';
+  document.getElementById('loadSub').textContent = 'Ek secret animal choose kar raha hun!';
 
   try {
-    history.push({ role: 'user', content: 'Game shuru. Abhi secretly ek animal choose karo aur ready raho.' });
-    const reply = await callAI(history, SYSTEM[difficulty]);
-    history.push({ role: 'assistant', content: reply });
+    gameHistory.push({ role: 'user', content: 'Game shuru. Main tayar hun.' });
+    const sys = SYSTEM[difficulty].replace('{ANIMAL}', secretAnimal);
+    await callAI(gameHistory, sys); 
+    gameHistory.push({ role: 'assistant', content: '✅ Haan!' });
     show('s-game');
     document.getElementById('qInput').focus();
   } catch(e) {
     show('s-intro');
-    alert('API Error: ' + e.message);
+    alert('Error: ' + e.message);
   }
 }
 
@@ -378,27 +279,32 @@ async function askQuestion() {
   input.disabled = true;
   document.getElementById('askBtn').disabled = true;
   document.getElementById('errBox').style.display = 'none';
-  setBubble('<div class="thinking-dots"><span></span><span></span><span></span></div>');
+  document.getElementById('aiBubble').innerHTML = '<div class="thinking-dots"><span></span><span></span><span></span></div>';
 
   try {
-    history.push({ role: 'user', content: q });
-    const reply = await callAI(history, SYSTEM[difficulty]);
-    history.push({ role: 'assistant', content: reply });
+    gameHistory.push({ role: 'user', content: q });
+    const sys = SYSTEM[difficulty].replace('{ANIMAL}', secretAnimal);
+    const raw = await callAI(gameHistory, sys);
+    const reply = cleanReply(raw);
+    gameHistory.push({ role: 'assistant', content: reply });
 
     qUsed++;
-    const left = 10 - qUsed;
-    document.getElementById('qLeft').textContent = left;
+    document.getElementById('qLeft').textContent = 10 - qUsed;
     document.getElementById('pFill').style.width = (qUsed * 10) + '%';
 
-    const isYes = reply.includes('Haan') || reply.includes('✅') || reply.toLowerCase().includes('yes');
+    const isYes = reply.includes('Haan');
     addHistory(q, reply, isYes ? 'yes' : 'no');
-    setBubble('🤖 ' + reply);
+    document.getElementById('aiBubble').textContent = '🤖 ' + reply;
 
-    if (qUsed >= 10) setBubble('⏰ 10 sawal ho gaye! Ab guess karo!');
+    if (qUsed >= 10) {
+      setTimeout(() => {
+        document.getElementById('aiBubble').textContent = '⏰ 10 sawal ho gaye! Ab guess karo!';
+      }, 800);
+    }
   } catch(e) {
-    showErr('Galti aayi: ' + e.message);
-    setBubble('🤖 Dobara try karo...');
-    history.pop();
+    showErr('Error: ' + e.message);
+    document.getElementById('aiBubble').textContent = '🤖 Dobara try karo...';
+    gameHistory.pop();
   }
 
   input.disabled = false;
@@ -415,11 +321,9 @@ function addHistory(q, a, type) {
   hist.scrollTop = hist.scrollHeight;
 }
 
-function setBubble(html) { document.getElementById('aiBubble').innerHTML = html; }
 function showErr(msg) {
-  const box = document.getElementById('errBox');
-  box.textContent = msg;
-  box.style.display = 'block';
+  const b = document.getElementById('errBox');
+  b.textContent = msg; b.style.display = 'block';
 }
 
 function goGuess() {
@@ -428,64 +332,31 @@ function goGuess() {
   document.getElementById('guessInput').focus();
 }
 
-async function giveUp() { await revealAndShow(false, ''); }
-
-async function submitGuess() {
-  const g = document.getElementById('guessInput').value.trim();
-  if (!g) return;
-  show('s-loading');
-  document.getElementById('loadMsg').textContent = 'Check kar raha hun...';
-  document.getElementById('loadSub').textContent = 'Thora sabr karo...';
-  await revealAndShow(null, g);
+function giveUp() {
+  document.getElementById('rEmoji').textContent = '😅';
+  document.getElementById('rTitle').textContent = 'Haar Gaye!';
+  document.getElementById('rSub').textContent = 'Koi baat nahi, agli baar zaroor jeetoge! 💪';
+  document.getElementById('rAnimal').textContent = secretAnimal;
+  show('s-result');
 }
 
-async function revealAndShow(forceResult, guess) {
-  show('s-loading');
-  document.getElementById('loadMsg').textContent = 'Jawab de raha hun...';
-  document.getElementById('loadSub').textContent = '';
-
-  try {
-    const revMsgs = [...history, {
-      role: 'user',
-      content: 'Game khatam. Batao tumne kaun sa animal socha tha. Sirf animal ka naam aur emoji likho.'
-    }];
-    const revReply = await callAI(revMsgs, SYSTEM[difficulty]);
-    secretAnimal = revReply.trim();
-
-    let correct = forceResult;
-    if (guess && forceResult === null) {
-      const judgeMsgs = [{
-        role: 'user',
-        content: `Secret animal: "${secretAnimal}". Player guessed: "${guess}". Correct? Reply only CORRECT or WRONG.`
-      }];
-      const judgeReply = await callAI(judgeMsgs, 'You are a fair judge. Reply only CORRECT or WRONG.');
-      correct = judgeReply.toUpperCase().includes('CORRECT');
-    }
-
-    document.getElementById('rEmoji').textContent  = correct ? '🎉' : '😅';
-    document.getElementById('rTitle').textContent  = correct ? 'Wah! Bilkul Sahi!' : (forceResult === false ? 'Haar Gaye!' : 'Galat!');
-    document.getElementById('rSub').textContent    = correct
-      ? `"${guess}" ekdum sahi! Tum jeet gaye! 🏆`
-      : forceResult === false
-        ? 'Koi baat nahi, agli baar zaroor jeetoge! 💪'
-        : `"${guess}" sahi nahi tha. Agli baar! 💪`;
-    document.getElementById('rAnimal').textContent = secretAnimal;
-    show('s-result');
-  } catch(e) {
-    show('s-game');
-    showErr('Reveal me error: ' + e.message);
-  }
+function submitGuess() {
+  const g = document.getElementById('guessInput').value.trim().toLowerCase();
+  if (!g) return;
+  const correct = g.includes(secretAnimal) || secretAnimal.includes(g);
+  document.getElementById('rEmoji').textContent  = correct ? '🎉' : '😅';
+  document.getElementById('rTitle').textContent  = correct ? 'Wah! Bilkul Sahi!' : 'Galat!';
+  document.getElementById('rSub').textContent    = correct
+    ? `Tum jeet gaye! 🏆` : `"${g}" sahi nahi tha. Agli baar! 💪`;
+  document.getElementById('rAnimal').textContent = secretAnimal;
+  show('s-result');
 }
 
 function restart() { show('s-intro'); }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('qInput')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') askQuestion();
-  });
-  document.getElementById('guessInput')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') submitGuess();
-  });
+  document.getElementById('qInput')?.addEventListener('keydown', e => { if(e.key==='Enter') askQuestion(); });
+  document.getElementById('guessInput')?.addEventListener('keydown', e => { if(e.key==='Enter') submitGuess(); });
 });
 </script>
 </body>
