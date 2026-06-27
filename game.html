@@ -327,10 +327,10 @@ async function getHint() {
   
   // 🟢 The magic happens in this strict prompt for casual style:
   const hintSystemPrompt = `The secret animal is: ${secretAnimal}. 
-Give a single clever hint. Speak exactly like friends text each other on WhatsApp (simple Hinglish).
+Give a single clever hint. Speak exactly like friends text each other on WhatsApp (simple English).
 Do NOT mention the animal's name, its sound (like meow, bark, etc.), or give it away too easily. 
 Just give a slight clue about its body, color, or where it is usually seen, making the player think a little. Keep it to 1 short sentence.
-Example for cat: 'Ye aksar gharon ki deewaron par ya chhat par ghoomti hui dikh jati hai.'`;
+Example for cat: 'this is usually very friendly with humans.'`;
   
   try {
     const rawHint = await callAI([{ role: 'user', content: 'Give me a friendly hint.' }], hintSystemPrompt);
