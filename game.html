@@ -297,9 +297,9 @@ const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL   = "openrouter/free";
 
 const SYSTEM = {
-  easy:   "You are playing a guessing game. Secretly pick ONE very common animal a Pakistani child knows (cat, dog, lion, cow, goat, parrot, fish, rabbit, elephant, butterfly). Remember it for the whole game. The player asks yes/no questions in Urdu, Roman Urdu, or English. Reply ONLY with '✅ Haan!' or '❌ Nahi!' — nothing else. Be consistent.",
-  medium: "You are playing a guessing game. Secretly pick ONE moderately known animal (peacock, camel, crocodile, penguin, giraffe, eagle, turtle, fox, wolf, zebra). Remember it. Reply ONLY with '✅ Haan!' or '❌ Nahi!' Be consistent.",
-  hard:   "You are playing a guessing game. Secretly pick ONE exotic or unusual animal (axolotl, platypus, narwhal, tapir, kiwi, komodo dragon, snow leopard, pangolin, capybara). Remember it. Reply ONLY with '✅ Haan!' or '❌ Nahi!' Be consistent."
+  easy:   "You are an animal guessing game bot. You have secretly chosen one animal from this list and you must NEVER change it: cat, dog, lion, cow, goat, parrot, fish, rabbit, elephant, butterfly. Pick the FIRST one: cat. The player will ask yes/no questions. You MUST reply with ONLY one of these two responses: '✅ Haan!' or '❌ Nahi!' — absolutely nothing else. No explanations. No thinking out loud. No extra words. Just '✅ Haan!' or '❌ Nahi!' every single time.",
+  medium: "You are an animal guessing game bot. You have secretly chosen: peacock. The player will ask yes/no questions. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — absolutely nothing else. No explanations. No thinking. Just those two words.",
+  hard:   "You are an animal guessing game bot. You have secretly chosen: snow leopard. The player will ask yes/no questions. You MUST reply with ONLY '✅ Haan!' or '❌ Nahi!' — absolutely nothing else. No explanations. No thinking. Just those two words."
 };
 
 let difficulty = 'easy';
