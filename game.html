@@ -124,7 +124,6 @@
   .h-a { font-weight: 900; white-space: nowrap; }
   .h-a.yes { color: #4ade80; }
   .h-a.no  { color: #f87171; }
-  .h-a.maybe { color: #fbbf24; }
 
   .input-row {
     display: flex;
@@ -225,7 +224,6 @@
 <body>
 <div class="card">
 
-  <!-- INTRO -->
   <div class="screen active" id="s-intro">
     <span class="ai-face">🤖</span>
     <h1>Main Soochunga!</h1>
@@ -239,7 +237,6 @@
     <button class="btn btn-purple" onclick="startGame()">🎮 Shuru Karo!</button>
   </div>
 
-  <!-- LOADING -->
   <div class="screen" id="s-loading">
     <span class="ai-face">🤔</span>
     <h1 id="loadMsg">Soch raha hun...</h1>
@@ -249,11 +246,9 @@
     <p style="color:rgba(255,255,255,0.4); font-size:0.85rem;" id="loadSub">Ek secret animal choose kar raha hun!</p>
   </div>
 
-  <!-- GAME -->
   <div class="screen" id="s-game">
     <h1 style="font-size:1.4rem;">🐾 Animal Dhundo!</h1>
     <p class="subtitle">Haan ya Nahi wale sawal karo</p>
-
     <div class="q-bar">
       <span class="label">Baaki Sawal</span>
       <span class="count"><span id="qLeft">10</span> / 10</span>
@@ -261,22 +256,17 @@
     <div class="progress-wrap">
       <div class="progress-fill" id="pFill" style="width:0%"></div>
     </div>
-
     <div class="history" id="history"></div>
-
     <div class="ai-bubble" id="aiBubble">🤖 Pooch lo! Koi bhi sawal...</div>
     <div class="error-box" id="errBox"></div>
-
     <div class="input-row">
       <input class="q-input" id="qInput" placeholder="e.g. Kya ye jungle me rehta hai?" maxlength="120" />
       <button class="btn btn-purple" id="askBtn" onclick="askQuestion()" style="padding:12px 18px;">Poocho</button>
     </div>
-
     <button class="btn btn-pink" onclick="goGuess()">🎯 Guess Karo!</button>
     <button class="btn btn-gray" onclick="giveUp()" style="font-size:0.85rem; padding:10px 18px;">🏳️ Haar Maano</button>
   </div>
 
-  <!-- GUESS -->
   <div class="screen" id="s-guess">
     <span style="font-size:3rem;">🎯</span>
     <h1>Guess Karo!</h1>
@@ -288,7 +278,6 @@
     <button class="btn btn-gray" onclick="show('s-game')">← Wapis</button>
   </div>
 
-  <!-- RESULT -->
   <div class="screen" id="s-result">
     <div class="result-big" id="rEmoji"></div>
     <div class="result-title" id="rTitle"></div>
@@ -303,13 +292,9 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════
-//  ⚠️  SIRF YAHAN APNI API KEY DAALO
-// ══════════════════════════════════════════
-const GEMINI_API_KEY = "AQ.Ab8RN6I21LQOMBk34ixBtfjQP0iRcrJnQTh1O-DUNkXlIi0D6Ask-or-v1-34e94c8f9074aab1e1d9d46250e80f9e65e4cbb96369d45e978d22ab3e79b4d1";
-// ══════════════════════════════════════════
-
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const API_KEY = "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";
+const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL   = "mistralai/mistral-7b-instruct:free";
 
 const SYSTEM = {
   easy:   "You are playing a guessing game. Secretly pick ONE very common animal a Pakistani child knows (cat, dog, lion, cow, goat, parrot, fish, rabbit, elephant, butterfly). Remember it for the whole game. The player asks yes/no questions in Urdu, Roman Urdu, or English. Reply ONLY with '✅ Haan!' or '❌ Nahi!' — nothing else. Be consistent.",
@@ -333,25 +318,29 @@ function show(id) {
   document.getElementById(id).classList.add('active');
 }
 
-async function gemini(messages) {
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
-
-  const res = await fetch(GEMINI_URL, {
+async function callAI(messages, systemPrompt) {
+  const res = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Authorization': 'Bearer ' + API_KEY,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://noshadhaider.github.io',
+      'X-Title': 'Animal Guess Game'
+    },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: SYSTEM[difficulty] }] },
-      contents,
-      generationConfig: { maxOutputTokens: 100, temperature: 0.7 }
+      model: MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages
+      ],
+      max_tokens: 50,
+      temperature: 0.7
     })
   });
 
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return data.choices?.[0]?.message?.content || '';
 }
 
 async function startGame() {
@@ -369,13 +358,13 @@ async function startGame() {
 
   try {
     history.push({ role: 'user', content: 'Game shuru. Abhi secretly ek animal choose karo aur ready raho.' });
-    const reply = await gemini(history);
+    const reply = await callAI(history, SYSTEM[difficulty]);
     history.push({ role: 'assistant', content: reply });
     show('s-game');
     document.getElementById('qInput').focus();
   } catch(e) {
     show('s-intro');
-    alert('API Error: ' + e.message + '\n\nAPI key check karo!');
+    alert('API Error: ' + e.message);
   }
 }
 
@@ -393,7 +382,7 @@ async function askQuestion() {
 
   try {
     history.push({ role: 'user', content: q });
-    const reply = await gemini(history);
+    const reply = await callAI(history, SYSTEM[difficulty]);
     history.push({ role: 'assistant', content: reply });
 
     qUsed++;
@@ -405,9 +394,7 @@ async function askQuestion() {
     addHistory(q, reply, isYes ? 'yes' : 'no');
     setBubble('🤖 ' + reply);
 
-    if (qUsed >= 10) {
-      setBubble('⏰ 10 sawal ho gaye! Ab guess karo!');
-    }
+    if (qUsed >= 10) setBubble('⏰ 10 sawal ho gaye! Ab guess karo!');
   } catch(e) {
     showErr('Galti aayi: ' + e.message);
     setBubble('🤖 Dobara try karo...');
@@ -428,10 +415,7 @@ function addHistory(q, a, type) {
   hist.scrollTop = hist.scrollHeight;
 }
 
-function setBubble(html) {
-  document.getElementById('aiBubble').innerHTML = html;
-}
-
+function setBubble(html) { document.getElementById('aiBubble').innerHTML = html; }
 function showErr(msg) {
   const box = document.getElementById('errBox');
   box.textContent = msg;
@@ -444,9 +428,7 @@ function goGuess() {
   document.getElementById('guessInput').focus();
 }
 
-async function giveUp() {
-  await revealAndShow(false, '');
-}
+async function giveUp() { await revealAndShow(false, ''); }
 
 async function submitGuess() {
   const g = document.getElementById('guessInput').value.trim();
@@ -463,45 +445,39 @@ async function revealAndShow(forceResult, guess) {
   document.getElementById('loadSub').textContent = '';
 
   try {
-    // Reveal animal
     const revMsgs = [...history, {
       role: 'user',
-      content: 'Game khatam. Batao tumne kaun sa animal socha tha. Sirf animal ka naam aur emoji likho, kuch aur nahi.'
+      content: 'Game khatam. Batao tumne kaun sa animal socha tha. Sirf animal ka naam aur emoji likho.'
     }];
-    const revReply = await gemini(revMsgs);
+    const revReply = await callAI(revMsgs, SYSTEM[difficulty]);
     secretAnimal = revReply.trim();
 
     let correct = forceResult;
-
     if (guess && forceResult === null) {
-      // Judge guess
       const judgeMsgs = [{
         role: 'user',
-        content: `Secret animal tha: "${secretAnimal}". Player ne guess kiya: "${guess}". Kya ye sahi hai? Sirf "CORRECT" ya "WRONG" likho.`
+        content: `Secret animal: "${secretAnimal}". Player guessed: "${guess}". Correct? Reply only CORRECT or WRONG.`
       }];
-      const judgeReply = await gemini(judgeMsgs);
+      const judgeReply = await callAI(judgeMsgs, 'You are a fair judge. Reply only CORRECT or WRONG.');
       correct = judgeReply.toUpperCase().includes('CORRECT');
     }
 
     document.getElementById('rEmoji').textContent  = correct ? '🎉' : '😅';
     document.getElementById('rTitle').textContent  = correct ? 'Wah! Bilkul Sahi!' : (forceResult === false ? 'Haar Gaye!' : 'Galat!');
     document.getElementById('rSub').textContent    = correct
-      ? `"${guess}" ekdum sahi jawab! Tum jeet gaye! 🏆`
+      ? `"${guess}" ekdum sahi! Tum jeet gaye! 🏆`
       : forceResult === false
         ? 'Koi baat nahi, agli baar zaroor jeetoge! 💪'
-        : `"${guess}" sahi nahi tha. Agli baar karoge! 💪`;
+        : `"${guess}" sahi nahi tha. Agli baar! 💪`;
     document.getElementById('rAnimal').textContent = secretAnimal;
     show('s-result');
-
   } catch(e) {
     show('s-game');
     showErr('Reveal me error: ' + e.message);
   }
 }
 
-function restart() {
-  show('s-intro');
-}
+function restart() { show('s-intro'); }
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('qInput')?.addEventListener('keydown', e => {
