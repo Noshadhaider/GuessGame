@@ -326,10 +326,11 @@ async function getHint() {
   document.getElementById('aiBubble').innerHTML = '<div class="thinking-dots"><span></span><span></span><span></span></div>';
   
   // 🟢 The magic happens in this strict prompt for casual style:
-  const hintSystemPrompt = `You are a friend giving a casual hint in an animal guessing game. The secret animal is: ${secretAnimal}. 
-  Give a very casual, friendly, single-sentence hint in pure Roman Urdu (Hinglish) just like normal friends text each other. 
-  Keep it simple, light-hearted, and NOT deep or poetic. Do NOT mention the animal name directly. Make sure any <think> blocks are excluded.
-  Example style: 'Bhai, ye gharon me aam dikh jati hai aur dhoodh bohot shauk se peeti hai.' or 'Ye jungle ka raja kehta hai khud ko!'`;
+  const hintSystemPrompt = `The secret animal is: ${secretAnimal}. 
+Give a single, very easy hint. Speak exactly like friends text each other on WhatsApp (simple Hinglish/Urdu). 
+Just describe one real physical feature or a famous habit of this animal in 1 sentence. 
+Do NOT say anything confusing or weird. Keep it short and natural.
+Example: 'Ye dhoodh peeti hai aur meow karti hai.'`;
   
   try {
     const rawHint = await callAI([{ role: 'user', content: 'Give me a friendly hint.' }], hintSystemPrompt);
