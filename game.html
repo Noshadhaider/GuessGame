@@ -303,6 +303,14 @@
 </div>
 
 <script>
+// ══════════════════════════════════════════
+//  ⚠️  SIRF YAHAN APNI API KEY DAALO
+// ══════════════════════════════════════════
+const GEMINI_API_KEY = "AQ.Ab8RN6JPZOeCxYNgHPblkcEHe9qOrT0y-VgzUpAQW2tKWRCFIQ";
+// ══════════════════════════════════════════
+
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
 const SYSTEM = {
   easy:   "You are playing a guessing game. Secretly pick ONE very common animal a Pakistani child knows (cat, dog, lion, cow, goat, parrot, fish, rabbit, elephant, butterfly). Remember it for the whole game. The player asks yes/no questions in Urdu, Roman Urdu, or English. Reply ONLY with '✅ Haan!' or '❌ Nahi!' — nothing else. Be consistent.",
   medium: "You are playing a guessing game. Secretly pick ONE moderately known animal (peacock, camel, crocodile, penguin, giraffe, eagle, turtle, fox, wolf, zebra). Remember it. Reply ONLY with '✅ Haan!' or '❌ Nahi!' Be consistent.",
@@ -325,21 +333,25 @@ function show(id) {
   document.getElementById(id).classList.add('active');
 }
 
-async function callClaude(messages, systemPrompt) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+async function gemini(messages) {
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+
+  const res = await fetch(GEMINI_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 100,
-      system: systemPrompt,
-      messages: messages
+      system_instruction: { parts: [{ text: SYSTEM[difficulty] }] },
+      contents,
+      generationConfig: { maxOutputTokens: 100, temperature: 0.7 }
     })
   });
 
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.content?.[0]?.text || '';
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
 async function startGame() {
@@ -357,13 +369,13 @@ async function startGame() {
 
   try {
     history.push({ role: 'user', content: 'Game shuru. Abhi secretly ek animal choose karo aur ready raho.' });
-    const reply = await callClaude(history, SYSTEM[difficulty]);
+    const reply = await gemini(history);
     history.push({ role: 'assistant', content: reply });
     show('s-game');
     document.getElementById('qInput').focus();
   } catch(e) {
     show('s-intro');
-    alert('API Error: ' + e.message);
+    alert('API Error: ' + e.message + '\n\nAPI key check karo!');
   }
 }
 
@@ -381,7 +393,7 @@ async function askQuestion() {
 
   try {
     history.push({ role: 'user', content: q });
-    const reply = await callClaude(history, SYSTEM[difficulty]);
+    const reply = await gemini(history);
     history.push({ role: 'assistant', content: reply });
 
     qUsed++;
@@ -451,21 +463,23 @@ async function revealAndShow(forceResult, guess) {
   document.getElementById('loadSub').textContent = '';
 
   try {
+    // Reveal animal
     const revMsgs = [...history, {
       role: 'user',
       content: 'Game khatam. Batao tumne kaun sa animal socha tha. Sirf animal ka naam aur emoji likho, kuch aur nahi.'
     }];
-    const revReply = await callClaude(revMsgs, SYSTEM[difficulty]);
+    const revReply = await gemini(revMsgs);
     secretAnimal = revReply.trim();
 
     let correct = forceResult;
 
     if (guess && forceResult === null) {
+      // Judge guess
       const judgeMsgs = [{
         role: 'user',
         content: `Secret animal tha: "${secretAnimal}". Player ne guess kiya: "${guess}". Kya ye sahi hai? Sirf "CORRECT" ya "WRONG" likho.`
       }];
-      const judgeReply = await callClaude(judgeMsgs, 'You are a fair game judge. Reply only CORRECT or WRONG.');
+      const judgeReply = await gemini(judgeMsgs);
       correct = judgeReply.toUpperCase().includes('CORRECT');
     }
 
@@ -499,5 +513,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-      </html>
-      
+</html>
