@@ -148,7 +148,6 @@
       <button class="btn btn-purple" id="askBtn" onclick="askQuestion()" style="padding:12px 18px;">Poocho</button>
     </div>
     
-    <!-- 🟢 Buttons section updated with Hint option -->
     <button class="btn btn-pink" style="width: 100%; margin: 6px 0;" onclick="goGuess()">🎯 Guess Karo!</button>
     <div class="action-btns">
       <button class="btn btn-orange" id="hintBtn" onclick="getHint()">💡 Hint Do</button>
@@ -197,7 +196,7 @@ let difficulty = 'easy';
 let gameHistory = []; 
 let qUsed = 0;
 let secretAnimal = '';
-let hintUsed = false; // Tracks if hint was already taken
+let hintUsed = false; 
 
 function setDiff(btn, d) {
   difficulty = d;
@@ -238,7 +237,7 @@ async function callAI(messages, systemPrompt) {
       model: MODEL,
       messages: [{ role: 'system', content: systemPrompt }, ...messages],
       max_tokens: 60,
-      temperature: 0.3
+      temperature: 0.5
     })
   });
   const data = await res.json();
@@ -318,7 +317,7 @@ async function askQuestion() {
   input.focus();
 }
 
-// 🟢 New function to request a hint from AI
+// 🟢 Upgraded Hint System for friendly, casual Roman Urdu chats
 async function getHint() {
   if (hintUsed) return;
   
@@ -326,14 +325,17 @@ async function getHint() {
   hintBtn.disabled = true;
   document.getElementById('aiBubble').innerHTML = '<div class="thinking-dots"><span></span><span></span><span></span></div>';
   
-  const hintSystemPrompt = `You are a helpful assistant in an animal guessing game. The secret animal is: ${secretAnimal}. Give the player a short, creative, single-sentence hint in Roman Urdu or simple English about this animal WITHOUT revealing its name. Keep any <think> block filtered out.`;
+  // 🟢 The magic happens in this strict prompt for casual style:
+  const hintSystemPrompt = `You are a friend giving a casual hint in an animal guessing game. The secret animal is: ${secretAnimal}. 
+  Give a very casual, friendly, single-sentence hint in pure Roman Urdu (Hinglish) just like normal friends text each other. 
+  Keep it simple, light-hearted, and NOT deep or poetic. Do NOT mention the animal name directly. Make sure any <think> blocks are excluded.
+  Example style: 'Bhai, ye gharon me aam dikh jati hai aur dhoodh bohot shauk se peeti hai.' or 'Ye jungle ka raja kehta hai khud ko!'`;
   
   try {
-    const rawHint = await callAI([{ role: 'user', content: 'Give me a short hint.' }], hintSystemPrompt);
-    // Clean potential <think> tags from hint response
+    const rawHint = await callAI([{ role: 'user', content: 'Give me a friendly hint.' }], hintSystemPrompt);
     const cleanHint = rawHint.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
     
-    document.getElementById('aiBubble').textContent = '💡 Hint: ' + cleanHint;
+    document.getElementById('aiBubble').textContent = '💡 ' + cleanHint;
     hintUsed = true;
     hintBtn.textContent = '❌ Hint Used';
   } catch(e) {
